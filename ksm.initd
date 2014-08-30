@@ -1,0 +1,52 @@
+#!/sbin/runscript
+# Distributed under the terms of the GNU General Public License v2
+
+extra_started_commands="status"
+description="Daemon for enable and tune KSM ( Kernel SamePage Merging )"
+
+depend () {
+        before qemu libvirtd
+}
+
+default_max_kernel_pages () {
+    local total pagesize
+    total=`awk '/^MemTotal:/ {print $2}' /proc/meminfo`
+    pagesize=`getconf PAGESIZE`
+    echo $[total * 1024 / pagesize / 2]
+}
+
+start() {
+	ebegin "Starting ${SVCNAME}"
+	checkpath -p /sys/kernel/mm/ksm/max_kernel_pages || return 1
+	KSM_MAX_KERNEL_PAGES=${KSM_MAX_KERNEL_PAGES:-`default_max_kernel_pages`}
+	echo $KSM_MAX_KERNEL_PAGES > /sys/kernel/mm/ksm/max_kernel_pages
+
+	echo 1 > /sys/kernel/mm/ksm/run
+
+	eend $?
+}
+
+stop() {
+	ebegin "Stopping ${SVCNAME}"
+	echo 0 > /sys/kernel/mm/ksm/run
+	eend $?
+}
+
+status() {
+    if [ ! -f /sys/kernel/mm/ksm/run ] ; then
+        echo $"${SVCNAME} not supported"
+        RETVAL=1
+    else if [ "$(cat /sys/kernel/mm/ksm/run 2>/dev/null)" != "1" ]; then
+        echo $"$prog is not running"
+        RETVAL=1
+    else
+        echo $"$prog is running"
+        RETVAL=0
+    fi; fi
+}
+
+restart() {
+    stop
+    start
+}
+
