@@ -17,7 +17,7 @@ default_max_kernel_pages () {
 
 start() {
 	ebegin "Starting ${SVCNAME}"
-	checkpath -p /sys/kernel/mm/ksm/max_kernel_pages || return 1
+	checkpath -f /sys/kernel/mm/ksm/max_kernel_pages || return 1
 	KSM_MAX_KERNEL_PAGES=${KSM_MAX_KERNEL_PAGES:-`default_max_kernel_pages`}
 	echo $KSM_MAX_KERNEL_PAGES > /sys/kernel/mm/ksm/max_kernel_pages
 
