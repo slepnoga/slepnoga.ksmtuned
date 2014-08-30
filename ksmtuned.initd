@@ -1,0 +1,12 @@
+#!/sbin/runscript
+# Distributed under the terms of the GNU General Public License v2
+
+command="/usr/sbin/ksmtuned"
+command_args="${ACPID_ARGS}"
+start_stop_daemon_args="--quiet"
+description="The Kernel Samepage Merging control Daemon"
+
+depend() {
+	before qemu libvirt
+	use ksm
+}
